@@ -12,6 +12,8 @@ app.use(express.json());
 app.use('/api/taller', require('./routes/taller'));
 app.use('/api/centros', require('./routes/centros'));
 app.use('/api/recursos', require('./routes/recursos'));
+app.use('/api/mentores', require('./routes/mentores'));
+app.use('/api/reservas', require('./routes/reservas'));
 
 // ==============================
 // PRUEBA
