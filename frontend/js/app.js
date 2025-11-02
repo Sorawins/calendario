@@ -1,17 +1,14 @@
 const formContainer = document.getElementById('formContainer');
 
-// ==============================
+
 // BOTONES PRINCIPALES
-// ==============================
 document.getElementById('btnReunion').addEventListener('click', mostrarFormularioReunion);
 document.getElementById('btnTaller').addEventListener('click', mostrarFormularioTaller);
 document.getElementById('btnCodice').addEventListener('click', mostrarFormularioCodice);
 document.getElementById('btnOtros').addEventListener('click', mostrarFormularioOtros);
 
-// ==============================
-// FUNCIONES AUXILIARES
-// ==============================
 
+// FUNCIONES AUXILIARES
 // Cargar centros, mentores, talleres y recursos desde el backend
 async function cargarDatos() {
   const [centrosRes, mentoresRes, talleresRes, recursosRes] = await Promise.all([
@@ -37,9 +34,9 @@ function crearSelect(id, datos, valueKey, textKey) {
   `;
 }
 
-// ==============================
+
 // FORMULARIO DE REUNIÓN
-// ==============================
+
 async function mostrarFormularioReunion() {
   const { centros, mentores } = await cargarDatos();
 
@@ -92,9 +89,9 @@ async function crearReservaReunion(e) {
   alert(data.ok ? 'Reunión guardada ✅' : '❌ ' + data.error);
 }
 
-// ==============================
+
 // FORMULARIO DE TALLER
-// ==============================
+
 async function mostrarFormularioTaller() {
   const { centros, mentores, talleres, recursos } = await cargarDatos();
 
@@ -146,9 +143,9 @@ async function crearReservaTaller(e) {
   alert(data.ok ? 'Taller guardado ✅' : '❌ ' + data.error);
 }
 
-// ==============================
+
 // FORMULARIO DE CÓDICE Y OTROS (pendientes)
-// ==============================
+
 function mostrarFormularioCodice() {
   formContainer.innerHTML = `<p>Formulario Códice (pendiente de implementar)</p>`;
 }
@@ -156,3 +153,56 @@ function mostrarFormularioCodice() {
 function mostrarFormularioOtros() {
   formContainer.innerHTML = `<p>Formulario Otros (pendiente de implementar)</p>`;
 }
+
+
+// CARGAR CALENDARIO DE RESERVAS
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const calendarEl = document.getElementById('calendar');
+  if (!calendarEl) return;
+
+  // 1️ Cargar reservas desde el backend
+  let reservas = [];
+  try {
+    const res = await fetch('http://localhost:3000/api/reservas');
+    const data = await res.json();
+    if (data.ok) reservas = data.data;
+  } catch (error) {
+    console.error('Error al cargar reservas:', error);
+  }
+
+  // 2️ Adaptar las reservas al formato del calendario
+  const eventos = reservas.map(r => ({
+    title: `${r.tipo.toUpperCase()} - ${r.descripcion || ''}`,
+    start: r.hora_inicio
+      ? `${r.fecha}T${r.hora_inicio}`
+      : `${r.fecha}T08:00:00`, // si no tiene hora
+    end: r.hora_fin
+      ? `${r.fecha}T${r.hora_fin}`
+      : `${r.fecha}T17:00:00`,
+    color:
+      r.tipo === 'taller'
+        ? '#3a87ad'
+        : r.tipo === 'reunion'
+        ? '#28a745'
+        : r.tipo === 'codice'
+        ? '#f0ad4e'
+        : '#6c757d',
+  }));
+
+  // 3️ Crear el calendario
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    locale: 'es',
+    height: 'auto',
+    events: eventos,
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
+    },
+  });
+
+  console.log("✅ Renderizando calendario con eventos:", eventos);
+  calendar.render();
+});

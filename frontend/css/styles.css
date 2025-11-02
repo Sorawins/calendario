@@ -50,3 +50,12 @@ input, select, textarea {
   border-radius: 5px;
   border: 1px solid #ccc;
 }
+
+#calendar {
+  max-width: 900px;
+  margin: 30px auto;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 8px;
+}
