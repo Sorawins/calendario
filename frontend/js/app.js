@@ -1,4 +1,5 @@
 const formContainer = document.getElementById('formContainer');
+let formularioActual = null; //formulario visible
 
 
 // BOTONES PRINCIPALES
@@ -38,6 +39,14 @@ function crearSelect(id, datos, valueKey, textKey) {
 // FORMULARIO DE REUNIÓN
 
 async function mostrarFormularioReunion() {
+
+  if (formularioActual === 'reunion') {
+    formContainer.innerHTML = '';
+    formularioActual = null;
+    return;
+  }
+  formularioActual = 'reunion';
+
   const { centros, mentores } = await cargarDatos();
 
   formContainer.innerHTML = `
@@ -93,6 +102,13 @@ async function crearReservaReunion(e) {
 // FORMULARIO DE TALLER
 
 async function mostrarFormularioTaller() {
+ if (formularioActual === 'taller') {
+    formContainer.innerHTML = '';
+    formularioActual = null;
+    return;
+  }
+  formularioActual = 'taller';
+
   const { centros, mentores, talleres, recursos } = await cargarDatos();
 
   formContainer.innerHTML = `
@@ -147,10 +163,26 @@ async function crearReservaTaller(e) {
 // FORMULARIO DE CÓDICE Y OTROS (pendientes)
 
 function mostrarFormularioCodice() {
+
+ if (formularioActual === 'codice') {
+    formContainer.innerHTML = '';
+    formularioActual = null;
+    return;
+  }
+  formularioActual = 'codice';
+
   formContainer.innerHTML = `<p>Formulario Códice (pendiente de implementar)</p>`;
 }
 
 function mostrarFormularioOtros() {
+
+  if (formularioActual === 'otros') {
+    formContainer.innerHTML = '';
+    formularioActual = null;
+    return;
+  }
+  formularioActual = 'otros';
+
   formContainer.innerHTML = `<p>Formulario Otros (pendiente de implementar)</p>`;
 }
 
