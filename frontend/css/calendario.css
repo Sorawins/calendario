@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Evita scroll */
+  font-family: 'Fredoka', sans-serif;
+  background-image: url("https://i.postimg.cc/qRnrh50L/Fondo-resolucion.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed; /* 👈 Hace que la imagen ocupe toda la pantalla */
+  position: relative;
+}
+
+/* Capa blanca semitransparente encima de la imagen */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.6); /* Ajusta la transparencia */
+  z-index: -1; /* Detrás del contenido */
+}
+
+h1 {
+  margin: 10px 0;
+  text-align: center;
+}
+
+#calendar {
+  width: 95%;
+  height: calc(100vh - 100px);
+  max-width: 1400px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+}
+
+.btn-volver {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: #3a87ad;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: 'Fredoka', sans-serif;
+}
+
+.btn-volver:hover {
+  background-color: #2f6f8f;
+}

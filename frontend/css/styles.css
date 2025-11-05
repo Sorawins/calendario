@@ -9,6 +9,7 @@ body {
   background-repeat: no-repeat;   
   position: relative;
   min-height: 100vh;
+  
 }
 
 body::before {
@@ -30,9 +31,30 @@ h1 {
 
 .botonera {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   gap: 15px;
   margin-bottom: 30px;
+}
+
+.fila-superior {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.boton-calendario {
+  padding: 15px 40px;              /* más grande */
+  font-size: 20px;                 /* texto más grande */
+  background-color: #3a87ad;       /* color diferente */
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.boton-calendario:hover {
+  background-color: #2f6f8f;
+  transform: scale(1.05);          /* efecto ligero al pasar el ratón */
 }
 
 button {
@@ -76,10 +98,17 @@ input, select, textarea {
 }
 
 #calendar {
-  max-width: 900px;
-  margin: 30px auto;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  padding: 10px;
-  border-radius: 8px;
+  width: 95%;              /* ocupa casi todo el ancho de la página */
+  max-width: 1200px;       /* límite opcional para pantallas grandes */
+  margin: 2rem auto;       /* centra el calendario */
+  background-color: rgba(255, 255, 255, 0.85); /* fondo blanco semitransparente */
+  padding: 1rem;           /* margen interior */
+  border-radius: 12px;     /* esquinas redondeadas */
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); /* sombra suave */
+}
+
+/* Aumentar el tamaño del texto en el calendario */
+.fc {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1rem; /* aumenta si quieres más grande */
 }

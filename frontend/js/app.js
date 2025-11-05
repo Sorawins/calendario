@@ -7,6 +7,9 @@ document.getElementById('btnReunion').addEventListener('click', mostrarFormulari
 document.getElementById('btnTaller').addEventListener('click', mostrarFormularioTaller);
 document.getElementById('btnCodice').addEventListener('click', mostrarFormularioCodice);
 document.getElementById('btnOtros').addEventListener('click', mostrarFormularioOtros);
+document.getElementById('btnVerCalendario').addEventListener('click', () => {
+  window.location.href = 'calendario.html';
+});
 
 
 // FUNCIONES AUXILIARES
@@ -52,8 +55,17 @@ async function mostrarFormularioReunion() {
   formContainer.innerHTML = `
     <h2>Reunión Inicial</h2>
     <form id="formReunion">
+      <label>Tipo de centro:</label>
+      <select id="tipoCentro">
+        <option value="">-- Selecciona tipo --</option>
+        <option value="público">Público</option>
+        <option value="privado">Privado</option>
+      </select>
+
       <label>Centro:</label>
-      ${crearSelect('centro', centros, 'id_centro', 'nombre')}
+      <select id="centro" required>
+        <option value="">-- Selecciona centro --</option>
+      </select>
 
       <label>Mentor:</label>
       ${crearSelect('mentor', mentores, 'id_mentor', 'nombre')}
@@ -73,6 +85,26 @@ async function mostrarFormularioReunion() {
       <button type="submit">Guardar</button>
     </form>
   `;
+
+   // 🔹 Filtrado de centros por tipo
+  const tipoSelect = document.getElementById('tipoCentro');
+  const centroSelect = document.getElementById('centro');
+
+  tipoSelect.addEventListener('change', (e) => {
+    const tipoSeleccionado = e.target.value;
+
+    // Filtramos los centros según el tipo y ordenamos por nombre
+    const centrosFiltrados = centros
+      .filter(c => c.tipo === tipoSeleccionado)
+      .sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+    // Llenamos el desplegable de centros
+    centroSelect.innerHTML = `
+      <option value="">-- Selecciona centro --</option>
+      ${centrosFiltrados.map(c => `<option value="${c.id_centro}">${c.nombre}</option>`).join('')}
+    `;
+  });
+
 
   document.getElementById('formReunion').addEventListener('submit', crearReservaReunion);
 }
@@ -95,14 +127,21 @@ async function crearReservaReunion(e) {
     body: JSON.stringify(datos)
   });
   const data = await res.json();
-  alert(data.ok ? 'Reunión guardada ✅' : '❌ ' + data.error);
+
+  if (data.ok) {
+    alert('Reunión guardada ✅');
+    formContainer.innerHTML = ''; // 👈 🔥 limpia el formulario tras guardar
+  } else {
+    alert('❌ ' + data.error);
+  }
 }
 
 
 // FORMULARIO DE TALLER
 
 async function mostrarFormularioTaller() {
- if (formularioActual === 'taller') {
+  // 🔹 Si el formulario actual es "taller", se oculta
+  if (formularioActual === 'taller') {
     formContainer.innerHTML = '';
     formularioActual = null;
     return;
@@ -111,11 +150,21 @@ async function mostrarFormularioTaller() {
 
   const { centros, mentores, talleres, recursos } = await cargarDatos();
 
+  // Estructura del formulario con tipo de centro
   formContainer.innerHTML = `
     <h2>Taller</h2>
     <form id="formTaller">
+      <label>Tipo de centro:</label>
+      <select id="tipoCentro">
+        <option value="">-- Selecciona tipo --</option>
+        <option value="público">Público</option>
+        <option value="privado">Privado</option>
+      </select>
+
       <label>Centro:</label>
-      ${crearSelect('centro', centros, 'id_centro', 'nombre')}
+      <select id="centro" required>
+        <option value="">-- Selecciona centro --</option>
+      </select>
 
       <label>Mentor:</label>
       ${crearSelect('mentor', mentores, 'id_mentor', 'nombre')}
@@ -135,6 +184,25 @@ async function mostrarFormularioTaller() {
       <button type="submit">Guardar</button>
     </form>
   `;
+
+  // Filtrado de centros por tipo
+  const tipoSelect = document.getElementById('tipoCentro');
+  const centroSelect = document.getElementById('centro');
+
+  tipoSelect.addEventListener('change', (e) => {
+    const tipoSeleccionado = e.target.value;
+
+    // Filtramos los centros según el tipo y ordenamos por nombre
+    const centrosFiltrados = centros
+      .filter(c => c.tipo === tipoSeleccionado)
+      .sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+    // Llenamos el desplegable de centros
+    centroSelect.innerHTML = `
+      <option value="">-- Selecciona centro --</option>
+      ${centrosFiltrados.map(c => `<option value="${c.id_centro}">${c.nombre}</option>`).join('')}
+    `;
+  });
 
   document.getElementById('formTaller').addEventListener('submit', crearReservaTaller);
 }
@@ -156,26 +224,70 @@ async function crearReservaTaller(e) {
     body: JSON.stringify(datos)
   });
   const data = await res.json();
-  alert(data.ok ? 'Taller guardado ✅' : '❌ ' + data.error);
+
+  if (data.ok) {
+    alert('Taller guardado ✅');
+    formContainer.innerHTML = ''; // 👈 🔥 limpia el formulario tras guardar
+  } else {
+    alert('❌ ' + data.error);
+  }
 }
 
 
 // FORMULARIO DE CÓDICE Y OTROS (pendientes)
 
-function mostrarFormularioCodice() {
-
- if (formularioActual === 'codice') {
+async function mostrarFormularioCodice() {
+  if (formularioActual === 'codice') {
     formContainer.innerHTML = '';
     formularioActual = null;
     return;
   }
   formularioActual = 'codice';
 
-  formContainer.innerHTML = `<p>Formulario Códice (pendiente de implementar)</p>`;
+  const { centros, mentores } = await cargarDatos();
+
+  formContainer.innerHTML = `
+    <h2>Actividad Códice</h2>
+    <form id="formCodice">
+      <label>Centro:</label>
+      ${crearSelect('centro', centros, 'id_centro', 'nombre')}
+
+      <label>Mentor:</label>
+      ${crearSelect('mentor', mentores, 'id_mentor', 'nombre')}
+
+      <label>Fecha:</label>
+      <input type="date" id="fecha" required>
+
+      <label>Descripción:</label>
+      <textarea id="descripcion"></textarea>
+
+      <button type="submit">Guardar</button>
+    </form>
+  `;
+
+  document.getElementById('formCodice').addEventListener('submit', async e => {
+    e.preventDefault();
+    const datos = {
+      tipo: 'codice',
+      id_centro: document.getElementById('centro').value,
+      id_mentor: document.getElementById('mentor').value,
+      fecha: document.getElementById('fecha').value,
+      descripcion: document.getElementById('descripcion').value,
+    };
+
+    const res = await fetch('http://localhost:3000/api/reservas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(datos),
+    });
+    const data = await res.json();
+    alert(data.ok ? 'Códice guardado ✅' : '❌ ' + data.error);
+    if (data.ok) formContainer.innerHTML = '';
+  });
 }
 
-function mostrarFormularioOtros() {
-
+// FORMULARIO DE OTROS
+async function mostrarFormularioOtros() {
   if (formularioActual === 'otros') {
     formContainer.innerHTML = '';
     formularioActual = null;
@@ -183,9 +295,47 @@ function mostrarFormularioOtros() {
   }
   formularioActual = 'otros';
 
-  formContainer.innerHTML = `<p>Formulario Otros (pendiente de implementar)</p>`;
-}
+  const { centros, mentores } = await cargarDatos();
 
+  formContainer.innerHTML = `
+    <h2>Otras Actividades</h2>
+    <form id="formOtros">
+      <label>Centro:</label>
+      ${crearSelect('centro', centros, 'id_centro', 'nombre')}
+
+      <label>Mentor:</label>
+      ${crearSelect('mentor', mentores, 'id_mentor', 'nombre')}
+
+      <label>Fecha:</label>
+      <input type="date" id="fecha" required>
+
+      <label>Descripción:</label>
+      <textarea id="descripcion"></textarea>
+
+      <button type="submit">Guardar</button>
+    </form>
+  `;
+
+  document.getElementById('formOtros').addEventListener('submit', async e => {
+    e.preventDefault();
+    const datos = {
+      tipo: 'otros',
+      id_centro: document.getElementById('centro').value,
+      id_mentor: document.getElementById('mentor').value,
+      fecha: document.getElementById('fecha').value,
+      descripcion: document.getElementById('descripcion').value,
+    };
+
+    const res = await fetch('http://localhost:3000/api/reservas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(datos),
+    });
+    const data = await res.json();
+    alert(data.ok ? 'Actividad guardada ✅' : '❌ ' + data.error);
+    if (data.ok) formContainer.innerHTML = '';
+  });
+}
 
 // CARGAR CALENDARIO DE RESERVAS
 
@@ -194,33 +344,47 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!calendarEl) return;
 
   // 1️ Cargar reservas desde el backend
-  let reservas = [];
-  try {
-    const res = await fetch('http://localhost:3000/api/reservas');
-    const data = await res.json();
-    if (data.ok) reservas = data.data;
-  } catch (error) {
-    console.error('Error al cargar reservas:', error);
-  }
+let reservas = [];
+try {
+  const res = await fetch('http://localhost:3000/api/reservas');
+  const data = await res.json();
 
-  // 2️ Adaptar las reservas al formato del calendario
-  const eventos = reservas.map(r => ({
+  if (data.ok && Array.isArray(data.data)) {
+    reservas = data.data;
+    console.log("✅ Reservas cargadas desde el backend:", reservas);
+  } else {
+    console.warn("⚠️ No se recibieron reservas válidas del backend:", data);
+  }
+} catch (error) {
+  console.error("❌ Error al cargar reservas:", error);
+}
+
+// 2️ Adaptar las reservas al formato del calendario (corrige fechas con zona horaria)
+const eventos = reservas.map(r => {
+  // Normaliza la fecha a formato local YYYY-MM-DD
+  const fecha = new Date(r.fecha);
+  const fechaLocal = fecha.toISOString().split('T')[0]; // se queda con la parte de la fecha sin hora
+
+  const horaInicio = r.hora_inicio ? r.hora_inicio.slice(0, 5) : "08:00";
+  const horaFin = r.hora_fin ? r.hora_fin.slice(0, 5) : "17:00";
+
+  return {
     title: `${r.tipo.toUpperCase()} - ${r.descripcion || ''}`,
-    start: r.hora_inicio
-      ? `${r.fecha}T${r.hora_inicio}`
-      : `${r.fecha}T08:00:00`, // si no tiene hora
-    end: r.hora_fin
-      ? `${r.fecha}T${r.hora_fin}`
-      : `${r.fecha}T17:00:00`,
+    start: `${fechaLocal}T${horaInicio}`,
+    end: `${fechaLocal}T${horaFin}`,
     color:
       r.tipo === 'taller'
         ? '#3a87ad'
         : r.tipo === 'reunion'
-        ? '#28a745'
-        : r.tipo === 'codice'
-        ? '#f0ad4e'
-        : '#6c757d',
-  }));
+          ? '#28a745'
+          : r.tipo === 'codice'
+            ? '#f0ad4e'
+            : '#6c757d',
+  };
+});
+
+console.log("🗓️ Eventos generados (fecha local corregida):", eventos);
+
 
   // 3️ Crear el calendario
   const calendar = new FullCalendar.Calendar(calendarEl, {

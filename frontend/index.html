@@ -5,35 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Calendario Mentor</title>
   <link rel="stylesheet" href="css/styles.css">
- 
-  <!-- FullCalendar CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
 
-  <!-- Fuentes -->
+  <!-- FullCalendar -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+  <!-- Fuente -->
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
 </head>
+
 <body>
   <h1>Calendario Mentor</h1>
 
   <div class="botonera">
+  <div class="fila-superior">
     <button id="btnReunion">Reunión inicial</button>
     <button id="btnTaller">Taller</button>
     <button id="btnCodice">Codice</button>
     <button id="btnOtros">Otros</button>
   </div>
+  <button id="btnCalendario" class="boton-calendario">Ver calendario</button>
+</div>
 
   <div id="formContainer"></div>
-  <h2>Calendario de Reservas</h2>
-  <div id="calendar"></div>
 
-  
+  <script src="./js/app.js"></script>
+
   <script>
-    console.log("Script embebido en HTML ejecutado correctamente");
+    // Ir a la página del calendario
+    document.getElementById("btnCalendario").addEventListener("click", () => {
+      window.location.href = "calendario.html";
+    });
   </script>
-
-
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
-  
-    <script src="./js/app.js"></script>
 </body>
 </html>

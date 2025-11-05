@@ -4,7 +4,7 @@ const pool = require('../db');
 
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM centro');
+    const [rows] = await pool.query('SELECT * FROM centro ORDER BY nombre ASC');
     res.json({ ok: true, data: rows });
   } catch (err) {
     console.error('Error en /api/centros:', err);
