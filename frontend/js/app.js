@@ -10,6 +10,10 @@ document.getElementById('btnOtros').addEventListener('click', mostrarFormularioO
 document.getElementById('btnVerCalendario').addEventListener('click', () => {
   window.location.href = 'calendario.html';
 });
+document.getElementById('btnLogout').addEventListener('click', () => {
+  sessionStorage.clear();
+  window.location.href = 'login.html';
+});
 
 
 // FUNCIONES AUXILIARES

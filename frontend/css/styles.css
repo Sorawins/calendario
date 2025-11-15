@@ -57,6 +57,20 @@ h1 {
   transform: scale(1.05);          /* efecto ligero al pasar el ratón */
 }
 
+.btn-logout {
+  background-color: #d9534f;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  font-family: 'Fredoka', sans-serif;
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn-logout:hover {
+  background-color: #b94440;
+}
+
 button {
   padding: 10px 20px;
   border: none;

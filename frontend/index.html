@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Calendario Mentor</title>
+
+  <!-- Estilos principales -->
   <link rel="stylesheet" href="css/styles.css">
 
   <!-- FullCalendar -->
@@ -15,27 +18,52 @@
 </head>
 
 <body>
+
+  <!-- Título -->
   <h1>Calendario Mentor</h1>
 
+  <!-- BOTONERA TAL COMO LA TENÍAS -->
   <div class="botonera">
-  <div class="fila-superior">
-    <button id="btnReunion">Reunión inicial</button>
-    <button id="btnTaller">Taller</button>
-    <button id="btnCodice">Codice</button>
-    <button id="btnOtros">Otros</button>
-  </div>
-  <button id="btnCalendario" class="boton-calendario">Ver calendario</button>
-</div>
 
+    <div class="fila-superior">
+      <button id="btnReunion">Reunión inicial</button>
+      <button id="btnTaller">Taller</button>
+      <button id="btnCodice">Codice</button>
+      <button id="btnOtros">Otros</button>
+    </div>
+
+    <button id="btnCalendario" class="boton-calendario">Ver calendario</button>
+
+    <!-- Botón de Cerrar sesión -->
+    <button id="btnLogout" class="btn-logout">Cerrar sesión</button>
+
+  </div>
+
+  <!-- CONTENEDOR FORMULARIOS -->
   <div id="formContainer"></div>
 
-  <script src="./js/app.js"></script>
+  <!-- APP PRINCIPAL -->
+  <script src="js/app.js"></script>
 
+  <!-- BLOQUE DE NAVEGACIÓN Y AUTENTICACIÓN -->
   <script>
-    // Ir a la página del calendario
+    // Protección
+    if (!sessionStorage.getItem("usuario")) {
+      window.location.href = "login.html";
+    }
+
+    // Botón Ver calendario
     document.getElementById("btnCalendario").addEventListener("click", () => {
       window.location.href = "calendario.html";
     });
+
+    // Botón Cerrar sesión
+    document.getElementById("btnLogout").addEventListener("click", () => {
+      sessionStorage.removeItem("usuario");
+      window.location.href = "login.html";
+    });
   </script>
+
 </body>
+
 </html>
