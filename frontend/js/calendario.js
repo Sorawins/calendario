@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const horaInicio = r.hora_inicio ? r.hora_inicio.slice(0, 5) : "08:00";
     const horaFin = r.hora_fin ? r.hora_fin.slice(0, 5) : "17:00";
 
-    // 🔹 Abreviaturas para tipos de evento
+    // Abreviaturas para tipos de evento
     let abreviatura = "";
     switch (r.tipo?.toLowerCase()) {
         case "reunion":
@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             abreviatura = r.tipo ? r.tipo.toUpperCase() : "EV";
     }
 
-    // 🔹 Construcción del texto que se mostrará en el calendario
+    // Construcción del texto que se mostrará en el calendario
     const detalles = [];
 
     if (r.descripcion) detalles.push(r.descripcion);

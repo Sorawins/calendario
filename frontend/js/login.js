@@ -1,19 +1,45 @@
-// Usuario y contraseña válidos
-const USUARIO_VALIDO = "admin";
-const PASSWORD_VALIDO = "1234";
-
-document.getElementById("loginForm").addEventListener("submit", (e) => {
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const usuario = document.getElementById("usuario").value.trim();
+  const id_mentor = document.getElementById("usuario").value.trim();
   const password = document.getElementById("password").value.trim();
   const mensaje = document.getElementById("mensaje");
 
-  if (usuario === USUARIO_VALIDO && password === PASSWORD_VALIDO) {
-    // Guardar sesión y redirigir
-    sessionStorage.setItem("usuario", usuario);
+  try {
+    const res = await fetch("http://localhost:3000/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id_mentor, password })
+    });
+
+    const data = await res.json();
+
+    
+    // 1. Usuario sin contraseña (primera vez)
+        if (data.primeraVez) {
+      // Guardamos el id de usuario para la página de creación
+      sessionStorage.setItem("tempUser", id_mentor);
+
+      // Redirigimos a la página donde creará la contraseña
+      window.location.href = "crearpassword.html";
+      return;
+    }
+
+    
+    // 2. Error en login normal
+        if (!res.ok) {
+      mensaje.textContent = data.error;
+      return;
+    }
+
+    
+    // 3. Login correcto
+       sessionStorage.setItem("usuario", JSON.stringify(data));
+
     window.location.href = "index.html";
-  } else {
-    mensaje.textContent = "Usuario o contraseña incorrectos";
+
+  } catch (err) {
+    mensaje.textContent = "Error de conexión con el servidor";
   }
 });
+

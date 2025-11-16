@@ -32,7 +32,7 @@ async function cargarDatos() {
   return { centros, mentores, talleres, recursos };
 }
 
-// Función genérica para crear un desplegable <select>
+// Función para crear un desplegable
 function crearSelect(id, datos, valueKey, textKey) {
   return `
     <select id="${id}" required>
@@ -44,7 +44,6 @@ function crearSelect(id, datos, valueKey, textKey) {
 
 
 // FORMULARIO DE REUNIÓN
-
 async function mostrarFormularioReunion() {
 
   if (formularioActual === 'reunion') {
@@ -90,7 +89,7 @@ async function mostrarFormularioReunion() {
     </form>
   `;
 
-   // 🔹 Filtrado de centros por tipo
+   // Filtrado de centros por tipo
   const tipoSelect = document.getElementById('tipoCentro');
   const centroSelect = document.getElementById('centro');
 
@@ -134,7 +133,7 @@ async function crearReservaReunion(e) {
 
   if (data.ok) {
     alert('Reunión guardada ✅');
-    formContainer.innerHTML = ''; // 👈 🔥 limpia el formulario tras guardar
+    formContainer.innerHTML = ''; // limpia el formulario tras guardar
   } else {
     alert('❌ ' + data.error);
   }
@@ -144,7 +143,7 @@ async function crearReservaReunion(e) {
 // FORMULARIO DE TALLER
 
 async function mostrarFormularioTaller() {
-  // 🔹 Si el formulario actual es "taller", se oculta
+  // Si el formulario actual es "taller", se oculta
   if (formularioActual === 'taller') {
     formContainer.innerHTML = '';
     formularioActual = null;
@@ -231,7 +230,7 @@ async function crearReservaTaller(e) {
 
   if (data.ok) {
     alert('Taller guardado ✅');
-    formContainer.innerHTML = ''; // 👈 🔥 limpia el formulario tras guardar
+    formContainer.innerHTML = ''; // limpia el formulario tras guardar
   } else {
     alert('❌ ' + data.error);
   }
@@ -239,7 +238,6 @@ async function crearReservaTaller(e) {
 
 
 // FORMULARIO DE CÓDICE Y OTROS (pendientes)
-
 async function mostrarFormularioCodice() {
   if (formularioActual === 'codice') {
     formContainer.innerHTML = '';
@@ -336,13 +334,12 @@ async function mostrarFormularioOtros() {
       body: JSON.stringify(datos),
     });
     const data = await res.json();
-    alert(data.ok ? 'Actividad guardada ✅' : '❌ ' + data.error);
+    alert(data.ok ? 'Actividad guardada' : '❌ ' + data.error);
     if (data.ok) formContainer.innerHTML = '';
   });
 }
 
 // CARGAR CALENDARIO DE RESERVAS
-
 document.addEventListener('DOMContentLoaded', async () => {
   const calendarEl = document.getElementById('calendar');
   if (!calendarEl) return;
@@ -355,19 +352,19 @@ try {
 
   if (data.ok && Array.isArray(data.data)) {
     reservas = data.data;
-    console.log("✅ Reservas cargadas desde el backend:", reservas);
+    console.log("Reservas cargadas desde el backend:", reservas);
   } else {
-    console.warn("⚠️ No se recibieron reservas válidas del backend:", data);
+    console.warn("No se recibieron reservas válidas del backend:", data);
   }
 } catch (error) {
-  console.error("❌ Error al cargar reservas:", error);
+  console.error("Error al cargar reservas:", error);
 }
 
 // 2️ Adaptar las reservas al formato del calendario (corrige fechas con zona horaria)
 const eventos = reservas.map(r => {
   // Normaliza la fecha a formato local YYYY-MM-DD
   const fecha = new Date(r.fecha);
-  const fechaLocal = fecha.toISOString().split('T')[0]; // se queda con la parte de la fecha sin hora
+  const fechaLocal = fecha.toISOString().split('T')[0];
 
   const horaInicio = r.hora_inicio ? r.hora_inicio.slice(0, 5) : "08:00";
   const horaFin = r.hora_fin ? r.hora_fin.slice(0, 5) : "17:00";
@@ -387,7 +384,7 @@ const eventos = reservas.map(r => {
   };
 });
 
-console.log("🗓️ Eventos generados (fecha local corregida):", eventos);
+console.log("Eventos generados (fecha local corregida):", eventos);
 
 
   // 3️ Crear el calendario
@@ -403,6 +400,6 @@ console.log("🗓️ Eventos generados (fecha local corregida):", eventos);
     },
   });
 
-  console.log("✅ Renderizando calendario con eventos:", eventos);
+  console.log("Renderizando calendario con eventos:", eventos);
   calendar.render();
 });

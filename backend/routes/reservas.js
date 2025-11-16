@@ -7,7 +7,7 @@ function bloqueaDiaPorTipo(tipo) {
   return (tipo === 'taller' || tipo === 'codice' || tipo === 'otros');
 }
 
-// Comprobar solapamiento simple (hora_inicio < otra.hora_fin y hora_fin > otra.hora_inicio)
+// Comprobar solapamiento 
 function haySolape(hIni, hFin, H2Ini, H2Fin) {
   return (hIni < H2Fin && hFin > H2Ini);
 }
@@ -60,8 +60,7 @@ router.post('/', async (req, res) => {
       if (recursoOtroCentro.length > 0) {
         return res.status(400).json({ ok: false, error: 'El recurso ya está bloqueado en otro centro ese día.' });
       }
-      // Nota: si el recurso está bloqueado en este mismo centro, sí puede volver a usarse en otras horas (según tus reglas).
-    }
+          }
 
     // 4) Insertar
     const [result] = await pool.query(
@@ -79,10 +78,9 @@ router.post('/', async (req, res) => {
 });
 
 
-// Obtener reservas por rango de fechas (para el calendario)
+// Obtener reservas por rango de fechas 
 router.get('/', async (req, res) => {
-  // filtros opcionales: fecha_desde, fecha_hasta, id_centro, id_mentor, tipo
-  const { fecha_desde, fecha_hasta, id_centro, id_mentor, tipo } = req.query;
+   const { fecha_desde, fecha_hasta, id_centro, id_mentor, tipo } = req.query;
   const params = [];
   let where = 'WHERE 1=1';
 
@@ -107,7 +105,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Disponibilidad de mentores para un día (no bloqueados)
+// Disponibilidad de mentores para un día 
 router.get('/disponibilidad/mentores', async (req, res) => {
   const { fecha } = req.query;
   if (!fecha) return res.status(400).json({ ok: false, error: 'Parámetro fecha requerido' });
@@ -118,7 +116,7 @@ router.get('/disponibilidad/mentores', async (req, res) => {
       [fecha]
     );
     const idsOcupados = ocupados.map(o => o.id_mentor);
-    // Todos los mentores menos los ocupados (ajusta a tu tabla real de mentores)
+    // Todos los mentores menos los ocupados
     const [mentores] = await pool.query(
       idsOcupados.length
         ? `SELECT * FROM mentor WHERE id_mentor NOT IN (${idsOcupados.map(()=>'?').join(',')})`
@@ -146,7 +144,7 @@ router.get('/disponibilidad/recursos', async (req, res) => {
     );
     const idsBloq = bloqueados.map(r => r.id_recurso);
 
-    // Lista de recursos (ajusta si tienes tabla de recursos por centro)
+    // Lista de recursos
     let sql = 'SELECT * FROM recurso';
     let params = [];
     if (idsBloq.length) {

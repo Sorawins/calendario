@@ -20,7 +20,7 @@ body::before {
   width: 100%;
   height: 100%;
   background-color: rgba(255, 255, 255, 0.6); /* color blanco semitransparente */
-  z-index: -1; /* queda detrás del contenido */
+  z-index: -1; 
 }
 
 h1 {
@@ -44,9 +44,9 @@ h1 {
 }
 
 .boton-calendario {
-  padding: 15px 40px;              /* más grande */
-  font-size: 20px;                 /* texto más grande */
-  background-color: #3a87ad;       /* color diferente */
+  padding: 15px 40px;            
+  font-size: 20px;                
+  background-color: #3a87ad;      
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
@@ -54,7 +54,7 @@ h1 {
 
 .boton-calendario:hover {
   background-color: #2f6f8f;
-  transform: scale(1.05);          /* efecto ligero al pasar el ratón */
+  transform: scale(1.05);          
 }
 
 .btn-logout {
@@ -80,8 +80,8 @@ button {
   cursor: pointer;
   font-size: 18px;
   font-family: 'Fredoka', sans-serif;
-  font-weight: 600;            /* Un poco más gruesa */
-  text-transform: uppercase;   /* En mayúsculas */
+  font-weight: 600;            
+  text-transform: uppercase;   
   letter-spacing: 1px;         
 }
 
@@ -112,17 +112,16 @@ input, select, textarea {
 }
 
 #calendar {
-  width: 95%;              /* ocupa casi todo el ancho de la página */
-  max-width: 1200px;       /* límite opcional para pantallas grandes */
-  margin: 2rem auto;       /* centra el calendario */
-  background-color: rgba(255, 255, 255, 0.85); /* fondo blanco semitransparente */
-  padding: 1rem;           /* margen interior */
-  border-radius: 12px;     /* esquinas redondeadas */
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); /* sombra suave */
+  width: 95%;              
+  max-width: 1200px;       
+  margin: 2rem auto;       
+  background-color: rgba(255, 255, 255, 0.85); 
+  padding: 1rem;           
+  border-radius: 12px;     
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); 
 }
 
-/* Aumentar el tamaño del texto en el calendario */
 .fc {
   font-family: 'Fredoka', sans-serif;
-  font-size: 1rem; /* aumenta si quieres más grande */
+  font-size: 1rem; 
 }
