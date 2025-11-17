@@ -38,7 +38,7 @@ router.post('/', async (req, res) => {
     }
 
     
-    // 2. YA TIENE CONTRASEÑA → comprobar
+    // 2. YA TIENE CONTRASEÑA:comprobar
     const ok = await bcrypt.compare(password, usuario.contrasena);
 
     if (!ok) {

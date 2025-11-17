@@ -92,12 +92,15 @@ router.get('/', async (req, res) => {
 
   try {
     const [rows] = await pool.query(
-      `SELECT id_reserva, tipo, fecha, hora_inicio, hora_fin, id_centro, id_mentor, id_recurso, descripcion, bloquea_dia
-       FROM reserva
-       ${where}
-       ORDER BY fecha, COALESCE(hora_inicio,'00:00:00')`
-      , params
-    );
+  `SELECT r.id_reserva, r.tipo, r.fecha, r.hora_inicio, r.hora_fin,
+          r.id_centro, c.nombre AS nombre_centro,
+          r.id_mentor, r.id_recurso, r.descripcion, r.bloquea_dia
+   FROM reserva r
+   LEFT JOIN centro c ON r.id_centro = c.id_centro
+   ${where}
+   ORDER BY r.fecha, COALESCE(r.hora_inicio,'00:00:00')`,
+  params
+);
     res.json({ ok: true, data: rows });
   } catch (err) {
     console.error('Error GET /api/reservas:', err);

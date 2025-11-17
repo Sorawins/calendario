@@ -132,7 +132,7 @@ async function crearReservaReunion(e) {
   const data = await res.json();
 
   if (data.ok) {
-    alert('Reunión guardada ✅');
+    alert('Reunión guardada');
     formContainer.innerHTML = ''; // limpia el formulario tras guardar
   } else {
     alert('❌ ' + data.error);
@@ -229,7 +229,7 @@ async function crearReservaTaller(e) {
   const data = await res.json();
 
   if (data.ok) {
-    alert('Taller guardado ✅');
+    alert('Taller guardado');
     formContainer.innerHTML = ''; // limpia el formulario tras guardar
   } else {
     alert('❌ ' + data.error);
@@ -283,7 +283,7 @@ async function mostrarFormularioCodice() {
       body: JSON.stringify(datos),
     });
     const data = await res.json();
-    alert(data.ok ? 'Códice guardado ✅' : '❌ ' + data.error);
+    alert(data.ok ? 'Códice guardado' : '❌ ' + data.error);
     if (data.ok) formContainer.innerHTML = '';
   });
 }

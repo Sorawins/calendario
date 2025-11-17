@@ -49,9 +49,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const detalles = [];
 
     if (r.descripcion) detalles.push(r.descripcion);
-    if (r.id_mentor) detalles.push(`Mentor: ${r.id_mentor}`);
-    if (r.id_taller) detalles.push(`Taller: ${r.id_taller}`);
-    if (r.id_centro) detalles.push(`Centro: ${r.id_centro}`);
+    if (r.id_mentor) detalles.push(`${r.id_mentor}`);
+    if (r.id_taller) detalles.push(`${r.id_taller}`);
+    if (r.nombre_centro) detalles.push(r.nombre_centro);
 
     const texto = `${abreviatura} | ${detalles.join(" | ")}`;
 
@@ -85,6 +85,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         },
     });
 
-    console.log("✅ Eventos cargados:", eventos);
+    console.log("Eventos cargados:", eventos);
     calendar.render();
 });

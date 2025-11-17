@@ -37,7 +37,7 @@ document.getElementById("createForm").addEventListener("submit", async (e) => {
 
     setTimeout(() => {
         window.location.href = "login.html";
-    }, 5000); // 5 segundos
+    }, 2000); // 2 segundos
 
     
 });
