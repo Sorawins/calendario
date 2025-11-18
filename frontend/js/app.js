@@ -89,7 +89,7 @@ async function mostrarFormularioReunion() {
     </form>
   `;
 
-   // Filtrado de centros por tipo
+  // Filtrado de centros por tipo
   const tipoSelect = document.getElementById('tipoCentro');
   const centroSelect = document.getElementById('centro');
 
@@ -143,7 +143,6 @@ async function crearReservaReunion(e) {
 // FORMULARIO DE TALLER
 
 async function mostrarFormularioTaller() {
-  // Si el formulario actual es "taller", se oculta
   if (formularioActual === 'taller') {
     formContainer.innerHTML = '';
     formularioActual = null;
@@ -151,9 +150,8 @@ async function mostrarFormularioTaller() {
   }
   formularioActual = 'taller';
 
-  const { centros, mentores, talleres, recursos } = await cargarDatos();
+  const { centros, talleres, recursos } = await cargarDatos();
 
-  // Estructura del formulario con tipo de centro
   formContainer.innerHTML = `
     <h2>Taller</h2>
     <form id="formTaller">
@@ -169,17 +167,28 @@ async function mostrarFormularioTaller() {
         <option value="">-- Selecciona centro --</option>
       </select>
 
-      <label>Mentor:</label>
-      ${crearSelect('mentor', mentores, 'id_mentor', 'nombre')}
+      <label>Fecha:</label>
+      <input type="date" id="fecha" required>
+
+      <label>Hora inicio:</label>
+      <input type="time" id="horaInicio" required>
+
+      <label>Hora fin:</label>
+      <input type="time" id="horaFin" required>
 
       <label>Taller:</label>
       ${crearSelect('taller', talleres, 'id_taller', 'nombre')}
 
       <label>Recurso:</label>
-      ${crearSelect('recurso', recursos, 'id_recurso', 'nombre')}
+      <select id="recurso" disabled>
+      <option value="">-- Primero centro y fecha --</option>
+      </select>
 
-      <label>Fecha:</label>
-      <input type="date" id="fecha" required>
+      <label>Mentor:</label>
+      <select id="mentor" disabled>
+      <option value="">-- Primero fecha --</option>
+      </select>
+
 
       <label>Descripción:</label>
       <textarea id="descripcion"></textarea>
@@ -188,23 +197,60 @@ async function mostrarFormularioTaller() {
     </form>
   `;
 
-  // Filtrado de centros por tipo
   const tipoSelect = document.getElementById('tipoCentro');
   const centroSelect = document.getElementById('centro');
+  const fechaSelect = document.getElementById('fecha');
+  const recursoSelect = document.getElementById('recurso');
+  const mentorSelect = document.getElementById('mentor');
 
-  tipoSelect.addEventListener('change', (e) => {
-    const tipoSeleccionado = e.target.value;
+  tipoSelect.addEventListener('change', () => {
+    const tipo = tipoSelect.value;
+    const filtrados = centros.filter(c => c.tipo === tipo);
+    centroSelect.innerHTML = `<option value="">-- Selecciona centro --</option>` +
+      filtrados.map(c => `<option value="${c.id_centro}">${c.nombre}</option>`).join('');
+  });
 
-    // Filtramos los centros según el tipo y ordenamos por nombre
-    const centrosFiltrados = centros
-      .filter(c => c.tipo === tipoSeleccionado)
-      .sort((a, b) => a.nombre.localeCompare(b.nombre));
+  // Cargar recursos libres dinámicamente
+  async function cargarRecursosLibres() {
+    const centro = centroSelect.value;
+    const fecha = fechaSelect.value;
 
-    // Llenamos el desplegable de centros
-    centroSelect.innerHTML = `
-      <option value="">-- Selecciona centro --</option>
-      ${centrosFiltrados.map(c => `<option value="${c.id_centro}">${c.nombre}</option>`).join('')}
-    `;
+    if (!centro || !fecha) {
+      recursoSelect.disabled = true;
+      return;
+    }
+
+    const res = await fetch(`http://localhost:3000/api/reservas/disponibilidad/recursos?fecha=${fecha}&id_centro=${centro}`);
+    const data = await res.json();
+
+    recursoSelect.innerHTML = `<option value="">-- Selecciona recurso --</option>`;
+    data.data.forEach(r => {
+      recursoSelect.innerHTML += `<option value="${r.id_recurso}">${r.nombre}</option>`;
+    });
+
+    recursoSelect.disabled = false;
+  }
+
+  // Cargar mentores libres dinámicamente
+  async function cargarMentoresLibres() {
+    const fecha = fechaSelect.value;
+    if (!fecha) return;
+
+    const res = await fetch(`http://localhost:3000/api/reservas/disponibilidad/mentores?fecha=${fecha}`);
+    const data = await res.json();
+
+    mentorSelect.innerHTML = `<option value="">-- Selecciona mentor --</option>`;
+    data.data.forEach(m => {
+      mentorSelect.innerHTML += `<option value="${m.id_mentor}">${m.nombre}</option>`;
+    });
+
+    mentorSelect.disabled = false;
+  }
+
+  centroSelect.addEventListener("change", cargarRecursosLibres);
+  fechaSelect.addEventListener("change", () => {
+    cargarRecursosLibres();
+    cargarMentoresLibres();
   });
 
   document.getElementById('formTaller').addEventListener('submit', crearReservaTaller);
@@ -217,6 +263,9 @@ async function crearReservaTaller(e) {
     id_centro: document.getElementById('centro').value,
     id_mentor: document.getElementById('mentor').value,
     id_recurso: document.getElementById('recurso').value,
+    id_taller: document.getElementById('taller').value,
+    hora_inicio: document.getElementById('horaInicio').value,
+    hora_fin: document.getElementById('horaFin').value,
     fecha: document.getElementById('fecha').value,
     descripcion: document.getElementById('descripcion').value
   };
@@ -227,15 +276,9 @@ async function crearReservaTaller(e) {
     body: JSON.stringify(datos)
   });
   const data = await res.json();
-
-  if (data.ok) {
-    alert('Taller guardado');
-    formContainer.innerHTML = ''; // limpia el formulario tras guardar
-  } else {
-    alert('❌ ' + data.error);
-  }
+  alert(data.ok ? 'Taller guardado' : '❌ ' + data.error);
+  if (data.ok) formContainer.innerHTML = '';
 }
-
 
 // FORMULARIO DE CÓDICE Y OTROS (pendientes)
 async function mostrarFormularioCodice() {
@@ -345,46 +388,55 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!calendarEl) return;
 
   // 1️ Cargar reservas desde el backend
-let reservas = [];
-try {
-  const res = await fetch('http://localhost:3000/api/reservas');
-  const data = await res.json();
+  let reservas = [];
+  try {
+    const res = await fetch('http://localhost:3000/api/reservas');
+    const data = await res.json();
 
-  if (data.ok && Array.isArray(data.data)) {
-    reservas = data.data;
-    console.log("Reservas cargadas desde el backend:", reservas);
-  } else {
-    console.warn("No se recibieron reservas válidas del backend:", data);
+    if (data.ok && Array.isArray(data.data)) {
+      reservas = data.data;
+      console.log("Reservas cargadas desde el backend:", reservas);
+    } else {
+      console.warn("No se recibieron reservas válidas del backend:", data);
+    }
+  } catch (error) {
+    console.error("Error al cargar reservas:", error);
   }
-} catch (error) {
-  console.error("Error al cargar reservas:", error);
+
+  // 2️ Adaptar las reservas al formato del calendario (corrige fechas con zona horaria)
+  const eventos = reservas.map(r => {
+    // Normaliza la fecha a formato local YYYY-MM-DD
+    const fecha = new Date(r.fecha);
+    const fechaLocal = fecha.toISOString().split('T')[0];
+
+    const horaInicio = r.hora_inicio ? r.hora_inicio.slice(0, 5) : "08:00";
+    const horaFin = r.hora_fin ? r.hora_fin.slice(0, 5) : "17:00";
+
+    // Construimos el título del evento
+let titulo = `${r.tipo.toUpperCase()} - ${r.descripcion || ''}`;
+
+// Si es un taller, añadimos id_taller e id_recurso
+if (r.tipo === 'taller') {
+  titulo += ` - TALLER: ${r.id_taller || ''} - RECURSO: ${r.id_recurso || ''}`;
 }
 
-// 2️ Adaptar las reservas al formato del calendario (corrige fechas con zona horaria)
-const eventos = reservas.map(r => {
-  // Normaliza la fecha a formato local YYYY-MM-DD
-  const fecha = new Date(r.fecha);
-  const fechaLocal = fecha.toISOString().split('T')[0];
+return {
+  title: titulo,
+  start: `${fechaLocal}T${horaInicio}`,
+  end: `${fechaLocal}T${horaFin}`,
+  color:
+    r.tipo === 'taller'
+      ? '#3a87ad'
+      : r.tipo === 'reunion'
+        ? '#28a745'
+        : r.tipo === 'codice'
+          ? '#f0ad4e'
+          : '#6c757d',
+};
+  });
 
-  const horaInicio = r.hora_inicio ? r.hora_inicio.slice(0, 5) : "08:00";
-  const horaFin = r.hora_fin ? r.hora_fin.slice(0, 5) : "17:00";
 
-  return {
-    title: `${r.tipo.toUpperCase()} - ${r.descripcion || ''}`,
-    start: `${fechaLocal}T${horaInicio}`,
-    end: `${fechaLocal}T${horaFin}`,
-    color:
-      r.tipo === 'taller'
-        ? '#3a87ad'
-        : r.tipo === 'reunion'
-          ? '#28a745'
-          : r.tipo === 'codice'
-            ? '#f0ad4e'
-            : '#6c757d',
-  };
-});
-
-console.log("Eventos generados (fecha local corregida):", eventos);
+  console.log("Eventos generados (fecha local corregida):", eventos);
 
 
   // 3️ Crear el calendario

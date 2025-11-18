@@ -14,7 +14,7 @@ function haySolape(hIni, hFin, H2Ini, H2Fin) {
 
 // Crear nueva reserva
 router.post('/', async (req, res) => {
-  const { tipo, fecha, hora_inicio, hora_fin, id_centro, id_mentor, id_recurso = null, descripcion = '' } = req.body;
+  const { tipo, fecha, hora_inicio, hora_fin, id_centro, id_mentor, id_recurso = null, id_taller = null, descripcion = '' } = req.body;
 
   if (!tipo || !fecha || !id_centro || !id_mentor) {
     return res.status(400).json({ ok: false, error: 'Faltan campos obligatorios: tipo, fecha, id_centro, id_mentor' });
@@ -64,9 +64,10 @@ router.post('/', async (req, res) => {
 
     // 4) Insertar
     const [result] = await pool.query(
-      `INSERT INTO reserva (tipo, fecha, hora_inicio, hora_fin, id_centro, id_mentor, id_recurso, descripcion, bloquea_dia)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [tipo, fecha, hora_inicio || null, hora_fin || null, id_centro, id_mentor, id_recurso, descripcion, bloquea_dia]
+      `INSERT INTO reserva (tipo, fecha, hora_inicio, hora_fin, id_centro, id_mentor, id_recurso,id_taller, descripcion, bloquea_dia)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [tipo, fecha, hora_inicio || null, hora_fin || null, id_centro, id_mentor, id_recurso, id_taller, descripcion, bloquea_dia]
+
     );
 
     res.json({ ok: true, mensaje: 'Reserva creada', id_reserva: result.insertId });
@@ -94,6 +95,7 @@ router.get('/', async (req, res) => {
     const [rows] = await pool.query(
   `SELECT r.id_reserva, r.tipo, r.fecha, r.hora_inicio, r.hora_fin,
           r.id_centro, c.nombre AS nombre_centro,
+          r.id_taller,
           r.id_mentor, r.id_recurso, r.descripcion, r.bloquea_dia
    FROM reserva r
    LEFT JOIN centro c ON r.id_centro = c.id_centro
