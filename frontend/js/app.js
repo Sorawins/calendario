@@ -44,8 +44,10 @@ function crearSelect(id, datos, valueKey, textKey) {
 
 
 // FORMULARIO DE REUNIÓN
+
 async function mostrarFormularioReunion() {
 
+  // Si ya está visible, lo ocultamos
   if (formularioActual === 'reunion') {
     formContainer.innerHTML = '';
     formularioActual = null;
@@ -53,7 +55,8 @@ async function mostrarFormularioReunion() {
   }
   formularioActual = 'reunion';
 
-  const { centros, mentores } = await cargarDatos();
+  // Cargamos solo los centros (los mentores libres se cargarán según la fecha)
+  const { centros } = await cargarDatos();
 
   formContainer.innerHTML = `
     <h2>Reunión Inicial</h2>
@@ -62,16 +65,13 @@ async function mostrarFormularioReunion() {
       <select id="tipoCentro">
         <option value="">-- Selecciona tipo --</option>
         <option value="público">Público</option>
-        <option value="privado">Privado</option>
+        <option value="concertado">Concertado</option>
       </select>
 
       <label>Centro:</label>
       <select id="centro" required>
         <option value="">-- Selecciona centro --</option>
       </select>
-
-      <label>Mentor:</label>
-      ${crearSelect('mentor', mentores, 'id_mentor', 'nombre')}
 
       <label>Fecha:</label>
       <input type="date" id="fecha" required>
@@ -82,6 +82,11 @@ async function mostrarFormularioReunion() {
       <label>Hora fin:</label>
       <input type="time" id="horaFin" required>
 
+      <label>Mentor:</label>
+      <select id="mentor" disabled required>
+        <option value="">-- Primero selecciona fecha --</option>
+      </select>
+
       <label>Descripción:</label>
       <textarea id="descripcion"></textarea>
 
@@ -89,31 +94,61 @@ async function mostrarFormularioReunion() {
     </form>
   `;
 
-  // Filtrado de centros por tipo
   const tipoSelect = document.getElementById('tipoCentro');
   const centroSelect = document.getElementById('centro');
+  const fechaSelect = document.getElementById('fecha');
+  const mentorSelect = document.getElementById('mentor');
 
-  tipoSelect.addEventListener('change', (e) => {
-    const tipoSeleccionado = e.target.value;
+  // Filtrado de centros por tipo
+  tipoSelect.addEventListener('change', () => {
+    const tipoSeleccionado = tipoSelect.value;
 
-    // Filtramos los centros según el tipo y ordenamos por nombre
     const centrosFiltrados = centros
       .filter(c => c.tipo === tipoSeleccionado)
       .sort((a, b) => a.nombre.localeCompare(b.nombre));
 
-    // Llenamos el desplegable de centros
     centroSelect.innerHTML = `
       <option value="">-- Selecciona centro --</option>
       ${centrosFiltrados.map(c => `<option value="${c.id_centro}">${c.nombre}</option>`).join('')}
     `;
   });
 
+  // Cargar mentores libres dinámicamente
+  async function cargarMentoresLibresReunion() {
+    const fecha = fechaSelect.value;
 
+    if (!fecha) {
+      mentorSelect.disabled = true;
+      mentorSelect.innerHTML = `<option value="">-- Primero selecciona fecha --</option>`;
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:3000/api/reservas/disponibilidad/mentores?fecha=${fecha}`);
+      const data = await res.json();
+
+      mentorSelect.innerHTML = `<option value="">-- Selecciona mentor --</option>`;
+      (data.data || []).forEach(m => {
+        mentorSelect.innerHTML += `<option value="${m.id_mentor}">${m.nombre}</option>`;
+      });
+
+      mentorSelect.disabled = false;
+    } catch (error) {
+      console.error('Error cargando mentores libres para reunión:', error);
+      mentorSelect.disabled = true;
+      mentorSelect.innerHTML = `<option value="">Error al cargar mentores</option>`;
+    }
+  }
+
+  // Cuando cambie la fecha, cargamos los mentores disponibles
+  fechaSelect.addEventListener("change", cargarMentoresLibresReunion);
+
+  // Envío del formulario (igual que ya tenías)
   document.getElementById('formReunion').addEventListener('submit', crearReservaReunion);
 }
-
 async function crearReservaReunion(e) {
   e.preventDefault();
+
   const datos = {
     tipo: 'reunion',
     id_centro: document.getElementById('centro').value,
@@ -129,6 +164,7 @@ async function crearReservaReunion(e) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(datos)
   });
+
   const data = await res.json();
 
   if (data.ok) {
@@ -159,7 +195,7 @@ async function mostrarFormularioTaller() {
       <select id="tipoCentro">
         <option value="">-- Selecciona tipo --</option>
         <option value="público">Público</option>
-        <option value="privado">Privado</option>
+        <option value="concertado">Concertado</option>
       </select>
 
       <label>Centro:</label>
@@ -345,9 +381,7 @@ async function mostrarFormularioOtros() {
   formContainer.innerHTML = `
     <h2>Otras Actividades</h2>
     <form id="formOtros">
-      <label>Centro:</label>
-      ${crearSelect('centro', centros, 'id_centro', 'nombre')}
-
+      
       <label>Mentor:</label>
       ${crearSelect('mentor', mentores, 'id_mentor', 'nombre')}
 
@@ -365,7 +399,6 @@ async function mostrarFormularioOtros() {
     e.preventDefault();
     const datos = {
       tipo: 'otros',
-      id_centro: document.getElementById('centro').value,
       id_mentor: document.getElementById('mentor').value,
       fecha: document.getElementById('fecha').value,
       descripcion: document.getElementById('descripcion').value,

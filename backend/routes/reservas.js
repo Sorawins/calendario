@@ -16,9 +16,15 @@ function haySolape(hIni, hFin, H2Ini, H2Fin) {
 router.post('/', async (req, res) => {
   const { tipo, fecha, hora_inicio, hora_fin, id_centro, id_mentor, id_recurso = null, id_taller = null, descripcion = '' } = req.body;
 
-  if (!tipo || !fecha || !id_centro || !id_mentor) {
-    return res.status(400).json({ ok: false, error: 'Faltan campos obligatorios: tipo, fecha, id_centro, id_mentor' });
+  if (!tipo || !fecha || !id_mentor) {
+    return res.status(400).json({ ok: false, error: 'Faltan campos obligatorios: tipo, fecha, id_mentor' });
   }
+
+  // Si NO es "otros", entonces sí exigir centro
+  if (tipo !== 'otros' && !id_centro) {
+    return res.status(400).json({ ok: false, error: 'El centro es obligatorio para este tipo de actividad.' });
+  }
+
 
   const bloquea_dia = bloqueaDiaPorTipo(tipo);
 
@@ -60,13 +66,24 @@ router.post('/', async (req, res) => {
       if (recursoOtroCentro.length > 0) {
         return res.status(400).json({ ok: false, error: 'El recurso ya está bloqueado en otro centro ese día.' });
       }
-          }
+    }
 
     // 4) Insertar
     const [result] = await pool.query(
       `INSERT INTO reserva (tipo, fecha, hora_inicio, hora_fin, id_centro, id_mentor, id_recurso,id_taller, descripcion, bloquea_dia)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [tipo, fecha, hora_inicio || null, hora_fin || null, id_centro, id_mentor, id_recurso, id_taller, descripcion, bloquea_dia]
+      [
+        tipo,
+        fecha,
+        hora_inicio || null,
+        hora_fin || null,
+        tipo === 'otros' ? null : id_centro, 
+        id_mentor,
+        id_recurso || null,
+        id_taller || null,
+        descripcion,
+        bloquea_dia
+      ]
 
     );
 
@@ -81,19 +98,19 @@ router.post('/', async (req, res) => {
 
 // Obtener reservas por rango de fechas 
 router.get('/', async (req, res) => {
-   const { fecha_desde, fecha_hasta, id_centro, id_mentor, tipo } = req.query;
+  const { fecha_desde, fecha_hasta, id_centro, id_mentor, tipo } = req.query;
   const params = [];
   let where = 'WHERE 1=1';
 
   if (fecha_desde) { where += ' AND fecha >= ?'; params.push(fecha_desde); }
   if (fecha_hasta) { where += ' AND fecha <= ?'; params.push(fecha_hasta); }
-  if (id_centro)   { where += ' AND id_centro = ?'; params.push(id_centro); }
-  if (id_mentor)   { where += ' AND id_mentor = ?'; params.push(id_mentor); }
-  if (tipo)        { where += ' AND tipo = ?'; params.push(tipo); }
+  if (id_centro) { where += ' AND id_centro = ?'; params.push(id_centro); }
+  if (id_mentor) { where += ' AND id_mentor = ?'; params.push(id_mentor); }
+  if (tipo) { where += ' AND tipo = ?'; params.push(tipo); }
 
   try {
     const [rows] = await pool.query(
-  `SELECT r.id_reserva, r.tipo, r.fecha, r.hora_inicio, r.hora_fin,
+      `SELECT r.id_reserva, r.tipo, r.fecha, r.hora_inicio, r.hora_fin,
           r.id_centro, c.nombre AS nombre_centro,
           r.id_taller,
           r.id_mentor, r.id_recurso, r.descripcion, r.bloquea_dia
@@ -101,8 +118,8 @@ router.get('/', async (req, res) => {
    LEFT JOIN centro c ON r.id_centro = c.id_centro
    ${where}
    ORDER BY r.fecha, COALESCE(r.hora_inicio,'00:00:00')`,
-  params
-);
+      params
+    );
     res.json({ ok: true, data: rows });
   } catch (err) {
     console.error('Error GET /api/reservas:', err);
@@ -117,14 +134,14 @@ router.get('/disponibilidad/mentores', async (req, res) => {
 
   try {
     const [ocupados] = await pool.query(
-      `SELECT DISTINCT id_mentor FROM reserva WHERE fecha=? AND bloquea_dia=TRUE`,
-      [fecha]
-    );
+  `SELECT DISTINCT id_mentor FROM reserva WHERE fecha=?`,
+  [fecha]
+);
     const idsOcupados = ocupados.map(o => o.id_mentor);
     // Todos los mentores menos los ocupados
     const [mentores] = await pool.query(
       idsOcupados.length
-        ? `SELECT * FROM mentor WHERE id_mentor NOT IN (${idsOcupados.map(()=>'?').join(',')})`
+        ? `SELECT * FROM mentor WHERE id_mentor NOT IN (${idsOcupados.map(() => '?').join(',')})`
         : `SELECT * FROM mentor`,
       idsOcupados
     );
@@ -153,7 +170,7 @@ router.get('/disponibilidad/recursos', async (req, res) => {
     let sql = 'SELECT * FROM recurso';
     let params = [];
     if (idsBloq.length) {
-      sql += ` WHERE id_recurso NOT IN (${idsBloq.map(()=>'?').join(',')})`;
+      sql += ` WHERE id_recurso NOT IN (${idsBloq.map(() => '?').join(',')})`;
       params = idsBloq;
     }
     const [recursos] = await pool.query(sql, params);
