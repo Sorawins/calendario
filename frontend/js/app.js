@@ -7,9 +7,6 @@ document.getElementById('btnReunion').addEventListener('click', mostrarFormulari
 document.getElementById('btnTaller').addEventListener('click', mostrarFormularioTaller);
 document.getElementById('btnCodice').addEventListener('click', mostrarFormularioCodice);
 document.getElementById('btnOtros').addEventListener('click', mostrarFormularioOtros);
-document.getElementById('btnVerCalendario').addEventListener('click', () => {
-  window.location.href = 'calendario.html';
-});
 document.getElementById('btnLogout').addEventListener('click', () => {
   sessionStorage.clear();
   window.location.href = 'login.html';
@@ -55,7 +52,7 @@ async function mostrarFormularioReunion() {
   }
   formularioActual = 'reunion';
 
-  // Cargamos solo los centros (los mentores libres se cargarán según la fecha)
+  // Cargamos solo los centros
   const { centros } = await cargarDatos();
 
   formContainer.innerHTML = `
@@ -143,7 +140,7 @@ async function mostrarFormularioReunion() {
   // Cuando cambie la fecha, cargamos los mentores disponibles
   fechaSelect.addEventListener("change", cargarMentoresLibresReunion);
 
-  // Envío del formulario (igual que ya tenías)
+  // Envío del formulario
   document.getElementById('formReunion').addEventListener('submit', crearReservaReunion);
 }
 async function crearReservaReunion(e) {
@@ -316,8 +313,9 @@ async function crearReservaTaller(e) {
   if (data.ok) formContainer.innerHTML = '';
 }
 
-// FORMULARIO DE CÓDICE Y OTROS (pendientes)
+// FORMULARIO DE CÓDICE (CORREGIDO)
 async function mostrarFormularioCodice() {
+
   if (formularioActual === 'codice') {
     formContainer.innerHTML = '';
     formularioActual = null;
@@ -325,19 +323,33 @@ async function mostrarFormularioCodice() {
   }
   formularioActual = 'codice';
 
-  const { centros, mentores } = await cargarDatos();
+  const { centros } = await cargarDatos();
 
   formContainer.innerHTML = `
     <h2>Actividad Códice</h2>
     <form id="formCodice">
-      <label>Centro:</label>
-      ${crearSelect('centro', centros, 'id_centro', 'nombre')}
 
-      <label>Mentor:</label>
-      ${crearSelect('mentor', mentores, 'id_mentor', 'nombre')}
+      <!-- Igual que en Taller y Reunión -->
+      <label>Tipo de centro:</label>
+      <select id="tipoCentro">
+        <option value="">-- Selecciona tipo --</option>
+        <option value="público">Público</option>
+        <option value="concertado">Concertado</option>
+      </select>
+
+      <label>Centro:</label>
+      <select id="centro" required>
+        <option value="">-- Selecciona centro --</option>
+      </select>
 
       <label>Fecha:</label>
       <input type="date" id="fecha" required>
+
+      <label>Mentor:</label>
+      <!-- Igual que en Reunión y Taller: deshabilitado hasta elegir fecha -->
+      <select id="mentor" disabled>
+        <option value="">-- Primero selecciona fecha --</option>
+      </select>
 
       <label>Descripción:</label>
       <textarea id="descripcion"></textarea>
@@ -346,13 +358,60 @@ async function mostrarFormularioCodice() {
     </form>
   `;
 
+  const tipoSelect = document.getElementById('tipoCentro');
+  const centroSelect = document.getElementById('centro');
+  const fechaInput = document.getElementById('fecha');
+  const mentorSelect = document.getElementById('mentor');
+
+  tipoSelect.addEventListener('change', () => {
+    const tipo = tipoSelect.value;
+    const filtrados = centros
+      .filter(c => c.tipo === tipo)
+      .sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+    centroSelect.innerHTML =
+      `<option value="">-- Selecciona centro --</option>` +
+      filtrados.map(c => `<option value="${c.id_centro}">${c.nombre}</option>`).join('');
+  });
+
+  // Cargar mentores libres dinámicamente
+  async function cargarMentoresLibresCodice() {
+    const fecha = fechaInput.value;
+
+    if (!fecha) {
+      mentorSelect.disabled = true;
+      mentorSelect.innerHTML = `<option value="">-- Primero selecciona fecha --</option>`;
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:3000/api/reservas/disponibilidad/mentores?fecha=${fecha}`);
+      const data = await res.json();
+
+      mentorSelect.innerHTML = `<option value="">-- Selecciona mentor --</option>`;
+      (data.data || []).forEach(m => {
+        mentorSelect.innerHTML += `<option value="${m.id_mentor}">${m.nombre}</option>`;
+      });
+
+      mentorSelect.disabled = false;
+    } catch (err) {
+      console.error("❌ Error cargando mentores disponibles:", err);
+      mentorSelect.disabled = true;
+      mentorSelect.innerHTML = `<option value="">Error al cargar</option>`;
+    }
+  }
+
+  fechaInput.addEventListener("change", cargarMentoresLibresCodice);
+
+  // Envío del formulario
   document.getElementById('formCodice').addEventListener('submit', async e => {
     e.preventDefault();
+
     const datos = {
       tipo: 'codice',
-      id_centro: document.getElementById('centro').value,
-      id_mentor: document.getElementById('mentor').value,
-      fecha: document.getElementById('fecha').value,
+      id_centro: centroSelect.value,
+      id_mentor: mentorSelect.value,
+      fecha: fechaInput.value,
       descripcion: document.getElementById('descripcion').value,
     };
 
@@ -361,14 +420,18 @@ async function mostrarFormularioCodice() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(datos),
     });
+
     const data = await res.json();
     alert(data.ok ? 'Códice guardado' : '❌ ' + data.error);
+
     if (data.ok) formContainer.innerHTML = '';
   });
 }
 
-// FORMULARIO DE OTROS
+
+// FORMULARIO DE OTROS (CORREGIDO Y UNIFICADO)
 async function mostrarFormularioOtros() {
+
   if (formularioActual === 'otros') {
     formContainer.innerHTML = '';
     formularioActual = null;
@@ -376,17 +439,21 @@ async function mostrarFormularioOtros() {
   }
   formularioActual = 'otros';
 
-  const { centros, mentores } = await cargarDatos();
+  const { mentores } = await cargarDatos();
 
   formContainer.innerHTML = `
     <h2>Otras Actividades</h2>
     <form id="formOtros">
-      
-      <label>Mentor:</label>
-      ${crearSelect('mentor', mentores, 'id_mentor', 'nombre')}
 
+      <!-- Igual que en el resto: primero se selecciona la fecha -->
       <label>Fecha:</label>
       <input type="date" id="fecha" required>
+
+      <label>Mentor:</label>
+      <!-- Deshabilitado hasta elegir fecha -->
+      <select id="mentor" disabled>
+        <option value="">-- Primero selecciona fecha --</option>
+      </select>
 
       <label>Descripción:</label>
       <textarea id="descripcion"></textarea>
@@ -395,12 +462,50 @@ async function mostrarFormularioOtros() {
     </form>
   `;
 
+  // ➤ Referencias
+  const fechaInput = document.getElementById('fecha');
+  const mentorSelect = document.getElementById('mentor');
+
+  // ➤ Cargar mentores libres según fecha seleccionada
+  async function cargarMentoresLibres() {
+    const fecha = fechaInput.value;
+
+    if (!fecha) {
+      mentorSelect.disabled = true;
+      mentorSelect.innerHTML = `<option value="">-- Primero selecciona fecha --</option>`;
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/reservas/disponibilidad/mentores?fecha=${fecha}`
+      );
+      const data = await res.json();
+
+      mentorSelect.innerHTML = `<option value="">-- Selecciona mentor --</option>`;
+      (data.data || []).forEach(m => {
+        mentorSelect.innerHTML += `<option value="${m.id_mentor}">${m.nombre}</option>`;
+      });
+
+      mentorSelect.disabled = false;
+    } catch (err) {
+      console.error("❌ Error al cargar mentores para otros:", err);
+      mentorSelect.disabled = true;
+      mentorSelect.innerHTML = `<option value="">Error al cargar</option>`;
+    }
+  }
+
+  // ➤ Solo cuando cambia la fecha, se cargan mentores libres
+  fechaInput.addEventListener("change", cargarMentoresLibres);
+
+  // ➤ Envío del formulario
   document.getElementById('formOtros').addEventListener('submit', async e => {
     e.preventDefault();
+
     const datos = {
       tipo: 'otros',
-      id_mentor: document.getElementById('mentor').value,
-      fecha: document.getElementById('fecha').value,
+      fecha: fechaInput.value,
+      id_mentor: mentorSelect.value,
       descripcion: document.getElementById('descripcion').value,
     };
 
@@ -409,11 +514,14 @@ async function mostrarFormularioOtros() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(datos),
     });
+
     const data = await res.json();
     alert(data.ok ? 'Actividad guardada' : '❌ ' + data.error);
+
     if (data.ok) formContainer.innerHTML = '';
   });
 }
+
 
 // CARGAR CALENDARIO DE RESERVAS
 document.addEventListener('DOMContentLoaded', async () => {
@@ -446,45 +554,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     const horaFin = r.hora_fin ? r.hora_fin.slice(0, 5) : "17:00";
 
     // Construimos el título del evento
-let titulo = `${r.tipo.toUpperCase()} - ${r.descripcion || ''}`;
+    let titulo = `${r.tipo.toUpperCase()} - ${r.descripcion || ''}`;
 
-// Si es un taller, añadimos id_taller e id_recurso
-if (r.tipo === 'taller') {
-  titulo += ` - TALLER: ${r.id_taller || ''} - RECURSO: ${r.id_recurso || ''}`;
-}
+    // Si es un taller, añadimos id_taller e id_recurso
+    if (r.tipo === 'taller') {
+      titulo += ` - TALLER: ${r.id_taller || ''} - RECURSO: ${r.id_recurso || ''}`;
+    }
 
-return {
-  title: titulo,
-  start: `${fechaLocal}T${horaInicio}`,
-  end: `${fechaLocal}T${horaFin}`,
-  color:
-    r.tipo === 'taller'
-      ? '#3a87ad'
-      : r.tipo === 'reunion'
-        ? '#28a745'
-        : r.tipo === 'codice'
-          ? '#f0ad4e'
-          : '#6c757d',
-};
+    return {
+      title: titulo,
+      start: `${fechaLocal}T${horaInicio}`,
+      end: `${fechaLocal}T${horaFin}`,
+      color:
+        r.tipo === 'taller'
+          ? '#3a87ad'
+          : r.tipo === 'reunion'
+            ? '#28a745'
+            : r.tipo === 'codice'
+              ? '#f0ad4e'
+              : '#6c757d',
+    };
   });
 
 
   console.log("Eventos generados (fecha local corregida):", eventos);
-
-
-  // 3️ Crear el calendario
-  const calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: 'dayGridMonth',
-    locale: 'es',
-    height: 'auto',
-    events: eventos,
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
-    },
-  });
-
-  console.log("Renderizando calendario con eventos:", eventos);
-  calendar.render();
 });

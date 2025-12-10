@@ -47,11 +47,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Construcción del texto que se mostrará en el calendario
         const detalles = [];
-
-        if (r.descripcion) detalles.push(r.descripcion);
+       
         if (r.id_mentor) detalles.push(`${r.id_mentor}`);
         if (r.id_taller) detalles.push(`${r.id_taller}`);
+        if (r.id_recurso) detalles.push(`${r.id_recurso}`);
         if (r.nombre_centro) detalles.push(r.nombre_centro);
+        if (r.descripcion) detalles.push(r.descripcion);
 
         const texto = `${abreviatura} | ${detalles.join(" | ")}`;
 
